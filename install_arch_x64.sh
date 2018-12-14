@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -e -x
 
 #ENCRYPT_FORMAT="aes-xts-plain64"
 #HASH_FORMAT="sha512"
@@ -22,6 +22,15 @@ set -e
 #    cryptsetup close to_be_wiped
 #}
 
+#create_partition_v2()
+#{
+#    sfdisk /dev/sda -uM <<EOF
+# 50
+# 50
+#
+#EOF
+#}
+
 create_partition()
 {
     parted --script /dev/sda \
@@ -39,8 +48,6 @@ create_partition()
 	   print
 }
 
-
-SECOND_PART="install_arch_x64_part2.sh"
 prepare_logical_volume()
 {
     modprobe dm-crypt
@@ -51,9 +58,9 @@ prepare_logical_volume()
     # configure lvm
     pvcreate /dev/mapper/luks_lvm
     vgcreate arch /dev/mapper/luks_lvm
-    lvcreate -n root -L 10G arch
-    lvcreate -n home -L 10G arch
+    lvcreate -n root -L 15G arch
     lvcreate -n swap -L 1G -C y arch
+    lvcreate -n home -l 100%free arch
 }
 
 format_partition()
@@ -78,27 +85,37 @@ mount_partition()
     mount /dev/mapper/arch-home /mnt/home
     mkdir /mnt/boot/efi
     mount /dev/sda1 /mnt/boot/efi
+
+    # bug : https://bugs.archlinux.org/task/61040
+    # answer : https://bbs.archlinux.org/viewtopic.php?pid=1820949#p1820949
+    mkdir /mnt/tmp_lvm
+    mount --bind /run/lvm /mnt/tmp_lvm
 }
 
-PACSTRAP_BASE_PACKAGE=" base base-devel efibootmgr vim dialog xterm btrfs-progs grub"
+#PACSTRAP_BASE_PACKAGE=" base base-devel efibootmgr vim dialog btrfs-progs grub"
+PACSTRAP_BASE_PACKAGE="base base-devel efibootmgr btrfs-progs grub"
 install_basics()
 {
-    pacstrap /mnt "$PACSTRAP_BASE_PACKAGE" --noconfirm
+    #    pacstrap -i /mnt "$PACSTRAP_BASE_PACKAGE"
+    #    pacstrap /mnt base base-devel efibootmgr vim dialog xterm btrfs-progs grub --noconfirm
+        pacstrap /mnt base base-devel efibootmgr btrfs-progs grub --noconfirm
     genfstab -Up /mnt > /mnt/etc/fstab
 }
 
+SECOND_PART="install_arch_x64_part2.sh"
 main()
 {
     create_partition
     prepare_logical_volume
     format_partition
+    mount_partition
     install_basics
 
     # go to part2
     if [ ! -f "$SECOND_PART" ] ; then
 	echo "error: '$SECOND_PART' not found - do ya chroot shit alone"
     else
-	cp -a "$SECOND_PART" /mnt
+	cp "$SECOND_PART" /mnt
 	arch-chroot /mnt ./"$SECOND_PART"
 	umount -R /mnt
 	reboot

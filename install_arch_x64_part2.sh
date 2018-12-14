@@ -1,16 +1,20 @@
 #!/bin/bash
 
-set -e
+set -e -x
 
 main()
 {
+    # bug : https://bugs.archlinux.org/task/61040
+    # answer : https://bbs.archlinux.org/viewtopic.php?pid=1820949#p1820949
+    ln -s /tmp_lvm /run/lvm
+
     # replace hooks by this
     # HOOKS="base udev autodetect modconf block encrypt lvm2 filesystems keyboard fsck"
     sed -i -e '/^HOOKS/s/block/block encrypt lvm2/' /etc/mkinitcpio.conf
     mkinitcpio -v -p linux
 
-    pacman -s grub --noconfirm
-    grub-install --efi-directory=/boot/efi
+    pacman -Sy grub --noconfirm
+    grub-install --target=x86_64-efi --efi-directory=/boot/efi
 
     # vim /etc/default/grub
     # GRUB_CMDLINE_LINUX_DEFAULT="quiet resume=/dev/mapper/swap cryptdevice=/dev/sda3:luks_lvm"
@@ -28,13 +32,16 @@ main()
 
     # Regenerate ramdisk file.
     mkinitcpio -p linux
-    
+
     # Regenerate grub.cfg file:
     #######################################
     ## Erreur ici, pas de grub.cfg
     grub-mkconfig -o /boot/grub/grub.cfg
     grub-mkconfig -o /boot/efi/EFI/arch/grub.cfg
     #######################################
+
+    # setup root password
+    passwd
     exit
 }
 

@@ -28,12 +28,17 @@ else
 fi
 
 Q_IMAGE="arch_image.img"
-SIZE_IMAGE="50G"
+SIZE_IMAGE=50G
 RAM_ALOWED="1024"
-qemu-img create "$Q_IMAGE" "$SIZE_IMAGE"
+if [ -f "$Q_IMAGE" ] ; then
+    rm "$Q_IMAGE"
+fi
+qemu-img create -f qcow2 "$Q_IMAGE" "$SIZE_IMAGE"
+
+#qemu-system-x86_64 -cdrom "$DWN_PATH/$FILE_IMAGE" -boot order=d -drive file="$DWN_PATH/$FILE_IMAGE" format=raw -m "$RAM_ALLOWED" -net nic -net user,hostfwd=tcp::10022-:22
 
 qemu-system-x86_64 \
-    -hda "$Q_IMAGE" -boot d -cdrom "$DWN_PATH/$FILE_IMAGE" -m "$RAM_ALOWED" \
+    -hda "$Q_IMAGE" -boot order=d -cdrom "$DWN_PATH/$FILE_IMAGE" -m "$RAM_ALOWED" \
     -net nic -net user,hostfwd=tcp::10022-:22
 
 #
