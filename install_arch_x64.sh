@@ -52,24 +52,31 @@ prepare_logical_volume()
 {
     modprobe dm-crypt
     modprobe dm-mod
+
     cryptsetup luksFormat -v -s 512 -h sha512 /dev/sda3
     cryptsetup open /dev/sda3 luks_lvm
 
     # configure lvm
     pvcreate /dev/mapper/luks_lvm
     vgcreate arch /dev/mapper/luks_lvm
-    lvcreate -n root -L 15G arch
-    lvcreate -n swap -L 4G -C y arch
-    lvcreate -n home -l 100%free arch
+
+    lvcreate -L 15G arch -n root
+    lvcreate -L 4G arch -n swap
+    lvcreate -l 100%free arch -n home
 }
 
 format_partition()
 {
     # format partitions
+    #  efi partition
     mkfs.fat -F32 /dev/sda1
-    mkfs.ext4 /dev/sda2
-    mkfs.btrfs -L root /dev/mapper/arch-root
-    mkfs.btrfs -L home /dev/mapper/arch-home
+
+    # boot partition
+    mkfs.ext4 -F /dev/sda2
+
+    # root + home + swap
+    mkfs.btrfs /dev/mapper/arch-root
+    mkfs.btrfs /dev/mapper/arch-home
     mkswap /dev/mapper/arch-swap
 }
 
@@ -78,44 +85,35 @@ mount_partition()
     #  mount
     mount /dev/mapper/arch-root /mnt
 
-    mkdir -p /mnt/{home,boot}
+    mkdir -p /mnt/boot
     mount /dev/sda2 /mnt/boot
+
+    mkdir -p /mnt/boot/efi
+    mount /dev/sda1 /mnt/boot/efi
+
+    mkdir -p /mnt/home
     mount /dev/mapper/arch-home /mnt/home
 
-    mkdir /mnt/boot/efi
-    mount /dev/sda1 /mnt/boot/efi
+    swapon /dev/mapper/arch-swap
 
     # bug : https://bugs.archlinux.org/task/61040
     # answer : https://bbs.archlinux.org/viewtopic.php?pid=1820949#p1820949
-    mkdir /mnt/tmp_lvm
+    mkdir -p /mnt/tmp_lvm
     mount --bind /run/lvm /mnt/tmp_lvm
-
-    swapon /dev/mapper/arch-swap
-#    swapon -a
 }
 
 #PACSTRAP_BASE_PACKAGE=" base base-devel efibootmgr vim dialog btrfs-progs grub"
-PACSTRAP_BASE_PACKAGE="base base-devel efibootmgr btrfs-progs grub-efi-x86_64 dialog wpa_supplicant os-prober"
+#PACSTRAP_BASE_PACKAGE="base base-devel efibootmgr btrfs-progs grub-efi-x86_64 dialog wpa_supplicant os-prober"
+PACSTRAP_BASE_PACKAGE="base base-devel efibootmgr btrfs-progs grub-efi-x86_64 os-prober"
 install_basics()
 {
     #    pacstrap -i /mnt "$PACSTRAP_BASE_PACKAGE"
 #    pacstrap /mnt base base-devel efibootmgr vim dialog xterm btrfs-progs grub os-prober
-    pacstrap /mnt base base-devel
-
+    pacstrap /mnt $PACSTRAP_BASE_PACKAGE
     genfstab -Up /mnt >> /mnt/etc/fstab
 }
 
 SECOND_PART="install_arch_x64_part2.sh"
-main_v2()
-{
-    # Create partitions
-    parted --script /dev/sda \
-	   mklabel gtp \
-	   mkpart ESP fat32  1Mib 513Mib \
-	   mkpart primary linux-swap 256Mib ext4 \
-	   name 2m swap
-}
-
 main()
 {
     create_partition
@@ -128,7 +126,7 @@ main()
     if [ ! -f "$SECOND_PART" ] ; then
 	echo "error: '$SECOND_PART' not found - do ya chroot shit alone"
     else
-	ln -s "$SECOND_PART" /mnt/
+	cp "$SECOND_PART" /mnt/
 	arch-chroot /mnt ./"$SECOND_PART"
 	umount -R /mnt
 	swapoff -a
