@@ -46,6 +46,10 @@ create_partition()
 	   set 3 lvm on \
 	   name 3 lvm \
 	   print
+
+    # zeroing new partitons
+    cat /dev/zero > /dev/sda1
+    cat /dev/zero > /dev/sda2
 }
 
 prepare_logical_volume()
@@ -59,7 +63,7 @@ prepare_logical_volume()
     pvcreate /dev/mapper/luks_lvm
     vgcreate arch /dev/mapper/luks_lvm
     lvcreate -n root -L 15G arch
-    lvcreate -n swap -L 1G -C y arch
+    lvcreate -n swap -L 4G -C y arch
     lvcreate -n home -l 100%free arch
 }
 
@@ -76,13 +80,12 @@ format_partition()
 mount_partition()
 {
     #  mount
-    swapon /dev/mapper/arch-swap
-    swapon -a
-    swapon -s
     mount /dev/mapper/arch-root /mnt
+
     mkdir -p /mnt/{home,boot}
     mount /dev/sda2 /mnt/boot
     mount /dev/mapper/arch-home /mnt/home
+
     mkdir /mnt/boot/efi
     mount /dev/sda1 /mnt/boot/efi
 
@@ -90,19 +93,33 @@ mount_partition()
     # answer : https://bbs.archlinux.org/viewtopic.php?pid=1820949#p1820949
     mkdir /mnt/tmp_lvm
     mount --bind /run/lvm /mnt/tmp_lvm
+
+    swapon /dev/mapper/arch-swap
+#    swapon -a
 }
 
 #PACSTRAP_BASE_PACKAGE=" base base-devel efibootmgr vim dialog btrfs-progs grub"
-PACSTRAP_BASE_PACKAGE="base base-devel efibootmgr btrfs-progs grub"
+PACSTRAP_BASE_PACKAGE="base base-devel efibootmgr btrfs-progs grub-efi-x86_64 dialog wpa_supplicant os-prober"
 install_basics()
 {
     #    pacstrap -i /mnt "$PACSTRAP_BASE_PACKAGE"
-    #    pacstrap /mnt base base-devel efibootmgr vim dialog xterm btrfs-progs grub --noconfirm
-        pacstrap /mnt base base-devel efibootmgr btrfs-progs grub --noconfirm
-    genfstab -Up /mnt > /mnt/etc/fstab
+#    pacstrap /mnt base base-devel efibootmgr vim dialog xterm btrfs-progs grub os-prober
+    pacstrap /mnt base base-devel
+
+    genfstab -Up /mnt >> /mnt/etc/fstab
 }
 
 SECOND_PART="install_arch_x64_part2.sh"
+main_v2()
+{
+    # Create partitions
+    parted --script /dev/sda \
+	   mklabel gtp \
+	   mkpart ESP fat32  1Mib 513Mib \
+	   mkpart primary linux-swap 256Mib ext4 \
+	   name 2m swap
+}
+
 main()
 {
     create_partition
@@ -115,9 +132,10 @@ main()
     if [ ! -f "$SECOND_PART" ] ; then
 	echo "error: '$SECOND_PART' not found - do ya chroot shit alone"
     else
-	cp "$SECOND_PART" /mnt
+	ln -s "$SECOND_PART" /mnt/
 	arch-chroot /mnt ./"$SECOND_PART"
 	umount -R /mnt
+	swapoff -a
 	reboot
     fi
 }
