@@ -46,10 +46,6 @@ create_partition()
 	   set 3 lvm on \
 	   name 3 lvm \
 	   print
-
-    # zeroing new partitons
-    cat /dev/zero > /dev/sda1
-    cat /dev/zero > /dev/sda2
 }
 
 prepare_logical_volume()
