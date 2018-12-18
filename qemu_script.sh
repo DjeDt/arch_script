@@ -47,10 +47,7 @@ main()
 {
 
     download_image
-    if [ "$1" = "--reload" ] ; then
-	if [ -f "$Q_IMAGE" ] ; then
-	    rm "$Q_IMAGE"
-	fi
+    if [ ! -f "$Q_IMAGE" ] ; then
 	create_image
     fi
     check_integrity
