@@ -22,15 +22,6 @@ set -e -x
 #    cryptsetup close to_be_wiped
 #}
 
-#create_partition_v2()
-#{
-#    sfdisk /dev/sda -uM <<EOF
-# 50
-# 50
-#
-#EOF
-#}
-
 create_partition()
 {
     parted --script /dev/sda \
@@ -64,9 +55,8 @@ prepare_logical_volume()
     lvcreate -L 4G arch -n swap
     lvcreate -l 100%free arch -n home
 
-    modprobe dm_mod
     vgscan
-    vgchange -ay
+    vgchange -ay arch
 }
 
 format_partition()

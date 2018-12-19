@@ -22,6 +22,11 @@ basic_conf()
     locale-gen
 }
 
+graphical_conf()
+{
+
+}
+
 create_user()
 {
     # setup rootpassword

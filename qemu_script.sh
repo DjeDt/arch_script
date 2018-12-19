@@ -64,7 +64,7 @@ main
 #
 # TO USE INSTALL SCRIPT ON VM WITH QEMU :
 #	-> inside the vm after boot and root login
-#	-> $> pacman -Sy openssh && systemctl enable sshd && systemctl start sshd
+#	-> $> systemctl start sshd
 #	-> $> passwd (set tmp root passwd)
 #
 #	-> from the host:
