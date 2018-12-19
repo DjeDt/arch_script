@@ -2,7 +2,7 @@
 
 set -e -x
 
-PACMAN_PACKAGE="efibootmgr grub-efi-x86_64 os-prober linux-headers linux-lts linux-lts-headers"
+PACMAN_PACKAGE="efibootmgr grub-efi-x86_64 os-prober linux-headers linux-lts linux-lts-headers wpa_supplicant dialog git"
 HOSTNAME="laptop"
 USER="dje"
 basic_conf()
@@ -20,11 +20,6 @@ basic_conf()
     # Setup langage
     sed -i -e 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g' /etc/locale.gen
     locale-gen
-}
-
-graphical_conf()
-{
-
 }
 
 create_user()
