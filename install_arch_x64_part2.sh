@@ -30,16 +30,19 @@ create_user()
     # create user
     useradd -m -G wheel -s /bin/bash "$USER"
     passwd "$USER"
+
+    # allow sudo to wheel group
+    sed -i '/%wheel ALL=(ALL) ALL/s/^#//' /etc/sudoers
 }
 
 mkinit_n_grub()
 {
     # replace hooks by thisx
     sed -i -e '/^HOOKS/s/block/block keymap encrypt lvm2/' /etc/mkinitcpio.conf
-
     # generate initrd image
     mkinitcpio -p linux
     mkinitcpio -p linux-lts
+    
     grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ArchLinux --recheck
 
     OPT="cryptdevice=/dev/sda3:luks_lvm quiet"
@@ -58,6 +61,7 @@ main()
     basic_conf
     create_user
     mkinit_n_grub
+    
     exit
 }
 

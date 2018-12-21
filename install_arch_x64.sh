@@ -103,7 +103,8 @@ install_basics()
     genfstab -Up /mnt >> /mnt/etc/fstab
 }
 
-SECOND_PART="install_arch_x64_part2.sh"
+SEC_STEP="install_arch_x64_part2.sh"
+TRI_STEP="install_arch_x64_part3.sh"
 main()
 {
     create_partition
@@ -113,14 +114,15 @@ main()
     install_basics
 
     # go to part2
-    if [ ! -f "$SECOND_PART" ] ; then
-	echo "error: '$SECOND_PART' not found - do ya chroot shit alone"
+    if [ ! -f "$TRI_STEP" ] ; then
+	echo "error: '$TRI_STEP' not found - do ya chroot shit alone"
     else
-	cp "/tmp/$SECOND_PART" /mnt/
-	echo "dfgdfg"
+	cp "$SEC_STEP" "$TRI_STEP" /mnt/
 	arch-chroot /mnt ./"$SECOND_PART"
-	umount -R /mnt
+	rm "/mnt/$SEC_STEP"
+    	umount -R /mnt
 	swapoff -a
+	echo "dont forget to run the 3rd script after reboot : [cd / && ./$TRI_STEP]" && sleep 2
 	reboot
     fi
 }
