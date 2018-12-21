@@ -114,11 +114,11 @@ main()
     install_basics
 
     # go to part2
-    if [ ! -f "$TRI_STEP" ] ; then
+    if [ ! -f "$SEC_STEP" ] ; then
 	echo "error: '$TRI_STEP' not found - do ya chroot shit alone"
     else
 	cp "$SEC_STEP" "$TRI_STEP" /mnt/
-	arch-chroot /mnt ./"$SECOND_PART"
+	arch-chroot /mnt ./"$SEC_STEP"
 	rm "/mnt/$SEC_STEP"
     	umount -R /mnt
 	swapoff -a
