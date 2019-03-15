@@ -2,17 +2,23 @@
 
 set -e -x
 
-PACMAN_PACKAGE="efibootmgr grub-efi-x86_64 os-prober linux-headers linux-lts linux-lts-headers wpa_supplicant dialog git"
-HOSTNAME="laptop"
-USER="dje"
+BASE_PACKAGE="efibootmgr grub-efi-x86_64 os-prober linux-headers linux-lts linux-lts-headers linux-firmware wpa_supplicant dialog git"
+HOSTNAME="l4tpt0p"
 basic_conf()
 {
+	pacman -Sy reflector
+	# find fatest mirrors
+	reflector --verbose --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
+	# update db
+	pacman -Syu
+
     # install base package
-    pacman -S $PACMAN_PACKAGE
+	pacman -Sy $BASE_PACKAGE
 
     # set system clock
     ln -sf /user/share/zoneinfo/UTC /etc/localtime
     hwclock --systohc --utc
+	timedatectl set-ntp true
 
     # set Hostname
     echo "$HOSTNAME" >> /etc/hostname
@@ -22,9 +28,10 @@ basic_conf()
     locale-gen
 }
 
+USER="dje"
 create_user()
 {
-    # setup rootpassword
+    # setup root password
     passwd
 
     # create user
@@ -42,7 +49,7 @@ mkinit_n_grub()
     # generate initrd image
     mkinitcpio -p linux
     mkinitcpio -p linux-lts
-    
+
     grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ArchLinux --recheck
 
     OPT="cryptdevice=/dev/sda3:luks_lvm quiet"
@@ -52,17 +59,23 @@ mkinit_n_grub()
     grub-mkconfig -o /boot/grub/grub.cfg
 }
 
+CORE="xf86-video-amdgpu mesa xorg xorg-xinit xterm openbox dunst compton tint2 termite nitrogen thunar tmux arc-solid-gtk-theme volumeicon networkmanager network-manager-applet alsa-utils"
+TOOLS="weechat emacs git obconf lxappearance bash-completion xbindkeys xf86-input-synaptics firefox"
+EXTRA="vlc evince i3lock gcc make vagrant ansible docker radare2 gdb radare2-cutter noto-fonts openssh openssl tar unzip redshift wget curl strace openvpn dnscrypt-proxy macchanger"
+conf_install()
+{
+	pacman -Sy $CORE
+	pacman -Sy $TOOLS
+	pacman -Sy $EXTRA
+}
+
 main()
 {
-    # bug : https://bugs.archlinux.org/task/61040
-    # fix : https://bbs.archlinux.org/viewtopic.php?pid=1820949#p1820949
-    ln -sf /tmp_lvm /run/lvm
-
     basic_conf
-    create_user
+	create_user
     mkinit_n_grub
-    
-    exit
+	conf_install
+	exit
 }
 
 main

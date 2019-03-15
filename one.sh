@@ -51,7 +51,7 @@ prepare_logical_volume()
     pvcreate /dev/mapper/luks_lvm
     vgcreate arch /dev/mapper/luks_lvm
 
-    lvcreate -L 15G arch -n root
+    lvcreate -L 10G arch -n root
     lvcreate -L 4G arch -n swap
     lvcreate -l 100%free arch -n home
 
@@ -92,19 +92,19 @@ mount_partition()
 
     # bug : https://bugs.archlinux.org/task/61040
     # fix : https://bbs.archlinux.org/viewtopic.php?pid=1820949#p1820949
-    mkdir -p /mnt/tmp_lvm
-    mount --bind /run/lvm /mnt/tmp_lvm
+  #  mkdir -p /mnt/tmp_lvm
+  #  mount --bind /run/lvm /mnt/tmp_lvm
 }
 
+# if install based proc replace linux-firmware by intel-ucode package
 PACSTRAP_BASE_PACKAGE="base base-devel"
 install_basics()
 {
-    pacstrap /mnt $PACSTRAP_BASE_PACKAGE
+	pacstrap /mnt $PACSTRAP_BASE_PACKAGE
     genfstab -Up /mnt >> /mnt/etc/fstab
 }
 
-SEC_STEP="install_arch_x64_part2.sh"
-TRI_STEP="install_arch_x64_part3.sh"
+SEC_STEP="two.sh"
 main()
 {
     create_partition
@@ -115,16 +115,15 @@ main()
 
     # go to part2
     if [ ! -f "$SEC_STEP" ] ; then
-	echo "error: '$TRI_STEP' not found - do ya chroot shit alone"
-    else
-	cp "$SEC_STEP" "$TRI_STEP" /mnt/
+		echo "Error: '$SEC_STEP' not found - do ya chroot shit alone"
+		exit 2
+	fi
+	cp "$SEC_STEP" /mnt/
 	arch-chroot /mnt ./"$SEC_STEP"
 	rm "/mnt/$SEC_STEP"
-    	umount -R /mnt
+    umount -R /mnt
 	swapoff -a
-	echo "dont forget to run the 3rd script after reboot : [cd / && ./$TRI_STEP]" && sleep 2
 	reboot
-    fi
 }
 
 main
