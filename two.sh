@@ -3,7 +3,7 @@
 set -e -x
 
 BASE_PACKAGE="efibootmgr grub-efi-x86_64 os-prober linux-headers linux-firmware wpa_supplicant dialog git"
-HOSTNAME="l4tpt0p"
+HOSTNAME="doz"
 basic_conf()
 {
 	pacman -Sy reflector
@@ -60,7 +60,7 @@ mkinit_n_grub()
 
 CORE="xf86-video-amdgpu mesa xorg xorg-xinit xterm openbox dunst compton tint2 termite nitrogen thunar tmux arc-solid-gtk-theme volumeicon networkmanager network-manager-applet alsa-utils"
 TOOLS="weechat emacs git obconf lxappearance bash-completion xbindkeys xf86-input-synaptics firefox"
-EXTRA="vlc evince i3lock gcc make radare2 gdb radare2-cutter noto-fonts openssh openssl tar unzip redshift wget curl strace openvpn dnscrypt-proxy macchanger"
+EXTRA="evince i3lock gcc make gdb noto-fonts openssh openssl tar unzip wget curl openvpn dnscrypt-proxy macchanger"
 conf_install()
 {
 	pacman -Sy $CORE

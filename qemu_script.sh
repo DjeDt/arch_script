@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DWN_PATH="./"
-FILE_IMAGE="archlinux-2019.03.01-x86_64.iso"
+FILE_IMAGE="archlinux-2019.06.01-x86_64.iso"
 
 set -e -x
 
@@ -29,7 +29,7 @@ check_integrity()
 
 Q_IMAGE="arch_image.img"
 SIZE_IMAGE=30G
-RAM_ALLOWED=2G
+RAM_ALLOWED=6G
 create_image()
 {
     qemu-img create -f qcow2 "$Q_IMAGE" "$SIZE_IMAGE"
@@ -37,7 +37,7 @@ create_image()
 
 main()
 {
-	check_integrity
+#	check_integrity
 	if [ ! -f "$Q_IMAGE" ] ; then
 		create_image
     fi

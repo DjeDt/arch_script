@@ -2,17 +2,18 @@
 
 set -e -x
 
-#ENCRYPT_FORMAT="aes-xts-plain64"
-#HASH_FORMAT="sha512"
-#KEY_SIZE="512"
-#encrypt_volume()
-#{
-#    cryptsetup --cipher "$ENCRYPT_FORMAT" --key-size "$KEY_SIZE" --hash "$HASH_FORMAT" --iter-time 5000 --use-random \
-#	       --verify-passphrase luksFormat /dev/sda2
-#    cryptsetup open --type luks /dev/sda2 crypt
-##    cryptsetup luksOpen /dev/sda2 luks
-#}
-#
+ENCRYPT_FORMAT="aes-xts-plain64"
+HASH_FORMAT="sha512"
+KEY_SIZE="512"
+PBKDF="argon2id"
+PBKDFIT=42
+PBKDFMEM=1048576
+encrypt_volume()
+{
+    cryptsetup --cipher "$ENCRYPT_FORMAT" --key-size "$KEY_SIZE" --hash "$HASH_FORMAT" --pbkdf=$PBKDF --pbkdf-force-iterations $PBKDFIT --pbkdf-memory $PBKDFMEM --use-random \
+			   --verify-passphrase luksFormat /dev/sda3
+}
+
 #VOL_GROUP="Vol"
 #secure_disk_erase()
 #{
@@ -39,21 +40,27 @@ create_partition()
 	   print
 }
 
+
+ROOT_SIZE="40G"
+SWAP_SIZE="8G"
+HOME_SIZE="100%free"
 prepare_logical_volume()
 {
     modprobe dm-crypt
     modprobe dm-mod
 
-    cryptsetup luksFormat -v -s 512 -h sha512 /dev/sda3
+	encrypt_volume
+
+	#    cryptsetup luksFormat -v -s 512 -h sha512 /dev/sda3
     cryptsetup open --type luks /dev/sda3 luks_lvm
 
     # configure lvm
     pvcreate /dev/mapper/luks_lvm
     vgcreate arch /dev/mapper/luks_lvm
 
-    lvcreate -L 10G arch -n root
-    lvcreate -L 4G arch -n swap
-    lvcreate -l 100%free arch -n home
+    lvcreate -L $ROOT_SIZE arch -n root
+    lvcreate -L $SWAP_SIZE arch -n swap
+    lvcreate -l $HOME_SIZE arch -n home
 
     vgscan
     vgchange -ay arch
@@ -123,7 +130,7 @@ main()
 	rm "/mnt/$SEC_STEP"
     umount -R /mnt
 	swapoff -a
-	reboot
+	shutdown
 }
 
 main
