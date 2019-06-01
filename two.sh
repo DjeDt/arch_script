@@ -1,9 +1,9 @@
-#!/bin/bash
+g#!/bin/bash
 
 set -e -x
 
-BASE_PACKAGE="efibootmgr grub-efi-x86_64 os-prober linux-headers linux-firmware wpa_supplicant dialog git"
-HOSTNAME="doz"
+BASE_PACKAGE="efibootmgr grub-efi-x86_64 linux-hardened os-prober linux-hardened-headers linux-firmware wpa_supplicant dialog git"
+HOSTNAME="dOz"
 basic_conf()
 {
 	pacman -Sy reflector
@@ -47,7 +47,7 @@ mkinit_n_grub()
     # replace hooks by thisx
     sed -i -e '/^HOOKS/s/block/block keymap encrypt lvm2/' /etc/mkinitcpio.conf
     # generate initrd image
-    mkinitcpio -p linux
+    mkinitcpio -p linux-hardened
 
     grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ArchLinux --recheck
 
