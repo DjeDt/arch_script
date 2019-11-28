@@ -1,4 +1,4 @@
-g#!/bin/bash
+#!/bin/bash
 
 set -e -x
 
@@ -6,19 +6,19 @@ BASE_PACKAGE="efibootmgr grub-efi-x86_64 linux-hardened os-prober linux-hardened
 HOSTNAME="dOz"
 basic_conf()
 {
-	pacman -Sy reflector
-	# find fatest mirrors
-	reflector --verbose --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
-	# update db
-	pacman -Syu
+    pacman -Sy reflector
+    # find fatest mirrors
+    reflector --verbose --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
+    # update db
+    pacman -Syu
 
     # install base package
-	pacman -Sy $BASE_PACKAGE
+    pacman -Sy $BASE_PACKAGE
 
     # set system clock
     ln -sf /user/share/zoneinfo/UTC /etc/localtime
     hwclock --systohc --utc
-	timedatectl set-ntp true
+    timedatectl set-ntp true
 
     # set Hostname
     echo "$HOSTNAME" >> /etc/hostname
@@ -58,23 +58,22 @@ mkinit_n_grub()
     grub-mkconfig -o /boot/grub/grub.cfg
 }
 
+# if intel : use xf86-video-intel
 CORE="xf86-video-amdgpu mesa xorg xorg-xinit xterm openbox dunst compton tint2 termite nitrogen thunar tmux arc-solid-gtk-theme volumeicon networkmanager network-manager-applet alsa-utils"
 TOOLS="weechat emacs git obconf lxappearance bash-completion xbindkeys xf86-input-synaptics firefox"
 EXTRA="evince i3lock gcc make gdb noto-fonts openssh openssl tar unzip wget curl openvpn dnscrypt-proxy macchanger"
 conf_install()
 {
-	pacman -Sy $CORE
-	pacman -Sy $TOOLS
-	pacman -Sy $EXTRA
+    pacman -Sy --noconfirm $CORE $TOOLS $EXTRA
 }
 
 main()
 {
     basic_conf
-	create_user
+    create_user
     mkinit_n_grub
-	conf_install
-	exit
+    conf_install
+    exit
 }
 
 main

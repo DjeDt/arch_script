@@ -10,18 +10,15 @@ PBKDFIT=42
 PBKDFMEM=1048576
 encrypt_volume()
 {
-    cryptsetup --cipher "$ENCRYPT_FORMAT" --key-size "$KEY_SIZE" --hash "$HASH_FORMAT" --pbkdf=$PBKDF --pbkdf-force-iterations $PBKDFIT --pbkdf-memory $PBKDFMEM --use-random \
-			   --verify-passphrase luksFormat /dev/sda3
+    cryptsetup --cipher "$ENCRYPT_FORMAT" \
+	       --key-size "$KEY_SIZE" \
+	       --hash "$HASH_FORMAT" \
+	       --pbkdf=$PBKDF \
+	       --pbkdf-force-iterations $PBKDFIT \
+	       --pbkdf-memory $PBKDFMEM \
+	       --use-random \
+	       --verify-passphrase luksFormat /dev/sda3
 }
-
-#VOL_GROUP="Vol"
-#secure_disk_erase()
-#{
-#    # 1st arg is the partition to clean
-#    cryptsetup open --type plain -d /dev/urandom /dev/$1 to_be_wiped
-#    dd if=/dev/zero of=/dev/mapper/to_be_wiped status=progress
-#    cryptsetup close to_be_wiped
-#}
 
 create_partition()
 {
@@ -49,9 +46,10 @@ prepare_logical_volume()
     modprobe dm-crypt
     modprobe dm-mod
 
-	encrypt_volume
 
-	#    cryptsetup luksFormat -v -s 512 -h sha512 /dev/sda3
+    encrypt_volume
+
+    # cryptsetup luksFormat -v -s 512 -h sha512 /dev/sda3
     cryptsetup open --type luks /dev/sda3 luks_lvm
 
     # configure lvm
@@ -99,15 +97,13 @@ mount_partition()
 
     # bug : https://bugs.archlinux.org/task/61040
     # fix : https://bbs.archlinux.org/viewtopic.php?pid=1820949#p1820949
-  #  mkdir -p /mnt/tmp_lvm
-  #  mount --bind /run/lvm /mnt/tmp_lvm
+    #  mkdir -p /mnt/tmp_lvm
+    #  mount --bind /run/lvm /mnt/tmp_lvm
 }
 
-# if install based proc replace linux-firmware by intel-ucode package
-PACSTRAP_BASE_PACKAGE="base base-devel"
 install_basics()
 {
-	pacstrap /mnt $PACSTRAP_BASE_PACKAGE
+    pacstrap /mnt base base-devel
     genfstab -Up /mnt >> /mnt/etc/fstab
 }
 
@@ -122,15 +118,15 @@ main()
 
     # go to part2
     if [ ! -f "$SEC_STEP" ] ; then
-		echo "Error: '$SEC_STEP' not found - do ya chroot shit alone"
-		exit 2
-	fi
-	cp "$SEC_STEP" /mnt/
-	arch-chroot /mnt ./"$SEC_STEP"
-	rm "/mnt/$SEC_STEP"
+	echo "Error: '$SEC_STEP' not found - do ya chroot shit alone"
+	exit 2
+    fi
+    cp "$SEC_STEP" /mnt/
+    arch-chroot /mnt ./"$SEC_STEP"
+    rm "/mnt/$SEC_STEP"
     umount -R /mnt
-	swapoff -a
-	shutdown
+    swapoff -a
+    shutdown
 }
 
 main
