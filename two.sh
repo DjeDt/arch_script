@@ -2,7 +2,7 @@
 
 set -e -x
 
-BASE_PACKAGE="efibootmgr grub-efi-x86_64 lvm2 linux linux-hardened os-prober linux-hardened-headers linux-firmware wpa_supplicant dialog git"
+BASE_PACKAGE="efibootmgr grub-efi-x86_64 lvm2 linux linux-hardened os-prober linux-hardened-headers linux-firmware wpa_supplicant dialog git dhcpcd"
 HOSTNAME="dOz"
 basic_conf()
 {
@@ -51,7 +51,8 @@ mkinit_n_grub()
 
     grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ArchLinux --recheck
 
-    OPT="cryptdevice=/dev/sda3:luks_lvm quiet"
+    # fix amd encryption conflict with hardened kernel by setting off mem_encrypt to off
+    OPT="cryptdevice=/dev/sda3:luks_lvm quiet mem_encrypt=off"
     sed -i "s|GRUB_CMDLINE_LINUX_DEFAULT=\(.\+\)|GRUB_CMDLINE_LINUX_DEFAULT=\"$OPT\"|g" /etc/default/grub
 
     # Regenerate grub.cfg file:

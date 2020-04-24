@@ -15,15 +15,11 @@ encrypt_volume()
     cryptsetup --cipher "$ENCRYPT_FORMAT" \
 	       --key-size "$KEY_SIZE" \
 	       --hash "$HASH_FORMAT" \
+	       --pbkdf=$PBKDF \
+	       --pbkdf-force-iterations $PBKDFIT \
+	       --pbkdf-memory $PBKDFMEM \
 	       --use-random \
-	       --verify-passphrase
-
-#	       --pbkdf=$PBKDF \
-#	       --pbkdf-force-iterations $PBKDFIT \
-#	       --pbkdf-memory $PBKDFMEM \
-#	       --use-random \
-#	       --verify-passphrase luksFormat \
-#	       /dev/sda3
+	       --verify-passphrase luksFormat /dev/sda3
 
     cryptsetup open --type luks /dev/sda3 luks_lvm
 
