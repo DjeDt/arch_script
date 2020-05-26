@@ -8,16 +8,25 @@ KEY_SIZE="512"
 PBKDF="argon2id"
 PBKDFIT=42
 PBKDFMEM=1048576
+
 encrypt_volume()
 {
+    # cryptsetup luksFormat -v -s 512 -h sha512 /dev/sda3
     cryptsetup --cipher "$ENCRYPT_FORMAT" \
 	       --key-size "$KEY_SIZE" \
 	       --hash "$HASH_FORMAT" \
-	       --pbkdf=$PBKDF \
-	       --pbkdf-force-iterations $PBKDFIT \
-	       --pbkdf-memory $PBKDFMEM \
 	       --use-random \
-	       --verify-passphrase luksFormat /dev/sda3
+	       --verify-passphrase
+
+#	       --pbkdf=$PBKDF \
+#	       --pbkdf-force-iterations $PBKDFIT \
+#	       --pbkdf-memory $PBKDFMEM \
+#	       --use-random \
+#	       --verify-passphrase luksFormat \
+#	       /dev/sda3
+
+    cryptsetup open --type luks /dev/sda3 luks_lvm
+
 }
 
 create_partition()
@@ -38,7 +47,7 @@ create_partition()
 }
 
 
-ROOT_SIZE="40G"
+ROOT_SIZE="60G"
 SWAP_SIZE="8G"
 HOME_SIZE="100%free"
 prepare_logical_volume()
@@ -48,9 +57,6 @@ prepare_logical_volume()
 
 
     encrypt_volume
-
-    # cryptsetup luksFormat -v -s 512 -h sha512 /dev/sda3
-    cryptsetup open --type luks /dev/sda3 luks_lvm
 
     # configure lvm
     pvcreate /dev/mapper/luks_lvm

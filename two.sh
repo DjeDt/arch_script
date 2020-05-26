@@ -2,7 +2,7 @@
 
 set -e -x
 
-BASE_PACKAGE="efibootmgr grub-efi-x86_64 linux-hardened os-prober linux-hardened-headers linux-firmware wpa_supplicant dialog git"
+BASE_PACKAGE="efibootmgr grub-efi-x86_64 lvm2 linux linux-hardened os-prober linux-hardened-headers linux-firmware wpa_supplicant dialog git"
 HOSTNAME="dOz"
 basic_conf()
 {
@@ -60,7 +60,7 @@ mkinit_n_grub()
 
 # if intel : use xf86-video-intel
 CORE="xf86-video-amdgpu mesa xorg xorg-xinit xterm openbox dunst compton tint2 termite nitrogen thunar tmux arc-solid-gtk-theme volumeicon networkmanager network-manager-applet alsa-utils"
-TOOLS="weechat emacs git obconf lxappearance bash-completion xbindkeys xf86-input-synaptics firefox"
+TOOLS="weechat emacs git obconf lxappearance bash-completion xf86-input-synaptics firefox"
 EXTRA="evince i3lock gcc make gdb noto-fonts openssh openssl tar unzip wget curl openvpn dnscrypt-proxy macchanger"
 conf_install()
 {
