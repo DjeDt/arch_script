@@ -44,9 +44,11 @@ create_user()
 
 mkinit_n_grub()
 {
-    # replace hooks by thisx
+    # replace hooks
     sed -i -e '/^HOOKS/s/block/block keymap encrypt lvm2/' /etc/mkinitcpio.conf
+    
     # generate initrd image
+    mkinitcpio -p linux
     mkinitcpio -p linux-hardened
 
     grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ArchLinux --recheck
@@ -60,12 +62,16 @@ mkinit_n_grub()
 }
 
 # if intel : use xf86-video-intel
-CORE="xf86-video-amdgpu mesa xorg xorg-xinit xterm openbox dunst compton tint2 termite nitrogen thunar tmux arc-solid-gtk-theme volumeicon networkmanager network-manager-applet alsa-utils"
-TOOLS="weechat emacs git obconf lxappearance bash-completion xf86-input-synaptics firefox"
-EXTRA="evince i3lock gcc make gdb noto-fonts openssh openssl tar unzip wget curl openvpn dnscrypt-proxy macchanger"
+
+SYSTEM="xf86-video-amdgpu mesa xorg xorg-xinit xterm alsa-utils xf86-input-synaptics"
+FONTS="ttf-font-awesome ttf-nerd-fonts-symbols noto-fonts"
+VISUAL="openbox i3 dunst compton tint2 arc-solid-gtk-theme volumeicon nitrogen thunar obconf lxappearance i3lock"
+PROG="termite tmux networkmanager network-manager-applet emacs git bash-completion firefox bash-completion evince \
+gcc make gdb openssh openssl tar unzip wget curl openvpn dnscrypt-proxy macchanger dnsutils keepass"
+
 conf_install()
 {
-    pacman -Sy --noconfirm $CORE $TOOLS $EXTRA
+    pacman -Sy --noconfirm $SYSTEM $FONTS $VISUAL $PROG
 }
 
 main()

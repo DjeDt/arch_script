@@ -50,8 +50,7 @@ prepare_logical_volume()
 {
     modprobe dm-crypt
     modprobe dm-mod
-
-
+    
     encrypt_volume
 
     # configure lvm
@@ -128,7 +127,8 @@ main()
     rm "/mnt/$SEC_STEP"
     umount -R /mnt
     swapoff -a
-    shutdown
+
+    echo "== Install done. =="
 }
 
 main
